@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic 3D Medical Model - Diabetes Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .control-group {
+            margin: 15px 0;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .condition-button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .condition-button:hover {
+            background: #2ea043;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .condition-button.active {
+            background: #dc2626;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+        }
+        
+        .condition-button.active:hover {
+            background: #b91c1c;
+        }
+        
+        .widget-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 70vh;
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            background: white;
+            position: relative;
+        }
+        
+        .widget-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-normal {
+            background: #10B981;
+        }
+        
+        .status-diabetic {
+            background: #EF4444;
+        }
+        
+        .fullscreen-button {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+        }
+        
+        .fullscreen-button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(29, 78, 216, 0.4);
+        }
+        
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🩺 Dynamic 3D Medical Visualization</h1>
+        <p>Interactive demonstration of condition-based 3D model switching</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Medical Condition Simulation:</label>
+            <div class="button-group">
+                <button class="condition-button" onclick="switchCondition('normal')" id="btn-normal">
+                    ✅ Normal Anatomy
+                </button>
+                <button class="condition-button active" onclick="switchCondition('diabetes')" id="btn-diabetes">
+                    ⚠️ Diabetes Effects
+                </button>
+                <button class="condition-button" onclick="switchCondition('heart')" id="btn-heart">
+                    ❤️ Heart Disease
+                </button>
+                <button class="condition-button" onclick="switchCondition('hypertension')" id="btn-hypertension">
+                    💔 Hypertension
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="widget-container">
+        <div class="widget-info" id="widget-info">
+            <span class="status-indicator status-diabetic" id="status-indicator"></span>
+            <span id="condition-text">Diabetes Effects - Metabolic System</span>
+        </div>
+        <iframe
+            id="medical-widget"
+            style="width: 100%; height: 100%; border: none;"
+            src="https://human.biodigital.com/widget/?be=2S0t&background.colors=0,0,0,0,0,0,0,0&initial.hand-hint=true&ui-info=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&uaid=3iSxx"
+            title="BioDigital Human Widget - Dynamic Medical Visualization"
+            allowfullscreen
+            loading="lazy"
+        ></iframe>
+    </div>
+
+    <button
+        class="fullscreen-button"
+        onclick="document.getElementById('medical-widget').requestFullscreen()"
+    >
+        🖥️ View Fullscreen
+    </button>
+
+    <div class="disclaimer">
+        <strong>⚠️ Medical Disclaimer:</strong> This 3D visualization is for educational and demonstration purposes only. 
+        It shows how different medical conditions can affect human anatomy. Always consult with qualified healthcare 
+        professionals for medical advice, diagnosis, or treatment. This demo simulates the dynamic model switching 
+        that occurs in the SwasthAI platform when diabetes is detected through AI prediction.
+    </div>
+
+    <script>
+        // Medical condition configurations
+        const medicalConditions = {
+            normal: {
+                name: 'Normal Anatomy',
+                description: 'Healthy human anatomy with normal organ function',
+                widgetUrl: 'https://human.biodigital.com/widget/?be=1Rek&background.colors=0,0,0,0,0,0,0,0&initial.hand-hint=true&ui-info=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&uaid=3iSxx',
+                icon: '✅',
+                statusClass: 'status-normal'
+            },
+            diabetes: {
+                name: 'Diabetes Effects',
+                description: 'Metabolic System - Diabetes Impact',
+                widgetUrl: 'https://human.biodigital.com/widget/?be=2S0t&background.colors=0,0,0,0,0,0,0,0&initial.hand-hint=true&ui-info=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&uaid=3iSxx',
+                icon: '⚠️',
+                statusClass: 'status-diabetic'
+            },
+            heart: {
+                name: 'Heart Disease',
+                description: 'Cardiovascular System - Heart Disease Effects',
+                widgetUrl: 'https://human.biodigital.com/widget/?be=1tPc&background.colors=0,0,0,0,0,0,0,0&initial.hand-hint=true&ui-info=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&uaid=3iSxx',
+                icon: '❤️',
+                statusClass: 'status-diabetic'
+            },
+            hypertension: {
+                name: 'Hypertension',
+                description: 'Vascular System - High Blood Pressure Effects',
+                widgetUrl: 'https://human.biodigital.com/widget/?be=1L4L&background.colors=0,0,0,0,0,0,0,0&initial.hand-hint=true&ui-info=true&ui-fullscreen=true&ui-center=false&ui-dissect=true&ui-zoom=true&ui-help=true&ui-tools-display=primary&uaid=3iSxx',
+                icon: '💔',
+                statusClass: 'status-diabetic'
+            }
+        };
+
+        let currentCondition = 'diabetes';
+
+        function switchCondition(condition) {
+            // Update current condition
+            currentCondition = condition;
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.condition-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to selected button
+            document.getElementById('btn-' + condition).classList.add('active');
+            
+            // Get condition config
+            const config = medicalConditions[condition];
+            
+            // Update widget iframe
+            const iframe = document.getElementById('medical-widget');
+            iframe.src = config.widgetUrl;
+            iframe.title = 'BioDigital Human Widget - ' + config.name;
+            
+            // Update status indicator
+            const statusIndicator = document.getElementById('status-indicator');
+            statusIndicator.className = 'status-indicator ' + config.statusClass;
+            
+            // Update condition text
+            const conditionText = document.getElementById('condition-text');
+            conditionText.textContent = config.name + ' - ' + config.description;
+            
+            // Add loading effect
+            iframe.style.opacity = '0.7';
+            setTimeout(() => {
+                iframe.style.opacity = '1';
+            }, 1000);
+            
+            console.log('Switched to condition:', condition, config);
+        }
+
+        // Simulate automatic switching based on prediction (demo feature)
+        function simulateDiabetesDetection() {
+            setTimeout(() => {
+                alert('🤖 AI Prediction: Diabetes detected! Switching to diabetes-specific 3D model...');
+                switchCondition('diabetes');
+            }, 3000);
+        }
+
+        // Demo: Auto-switch after 5 seconds for demonstration
+        setTimeout(() => {
+            const demoAlert = confirm('🎭 Demo Mode: Would you like to see automatic model switching when "diabetes" is detected?');
+            if (demoAlert) {
+                switchCondition('normal');
+                setTimeout(() => {
+                    alert('🧠 AI Analysis Complete: High diabetes risk detected! Automatically switching to diabetes-specific anatomical view...');
+                    switchCondition('diabetes');
+                }, 2000);
+            }
+        }, 2000);
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case '1':
+                    switchCondition('normal');
+                    break;
+                case '2':
+                    switchCondition('diabetes');
+                    break;
+                case '3':
+                    switchCondition('heart');
+                    break;
+                case '4':
+                    switchCondition('hypertension');
+                    break;
+                case 'f':
+                case 'F':
+                    document.getElementById('medical-widget').requestFullscreen();
+                    break;
+            }
+        });
+
+        console.log('🩺 Dynamic 3D Medical Visualization Demo Loaded');
+        console.log('💡 Use keyboard shortcuts: 1=Normal, 2=Diabetes, 3=Heart, 4=Hypertension, F=Fullscreen');
+    </script>
+</body>
+</html>

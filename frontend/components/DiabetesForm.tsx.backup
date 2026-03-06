@@ -1,0 +1,69 @@
+'use client';
+import { useState } from 'react';
+
+const DiabetesForm = () => {
+  const [formData, setFormData] = useState({
+    Pregnancies: '', Glucose: '', BloodPressure: '', SkinThickness: '',
+    Insulin: '', BMI: '', DiabetesPedigreeFunction: '', Age: ''
+  });
+  const [result, setResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true); setError(''); setResult(null);
+    try {
+      const numericData = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [key, parseFloat(value) || 0])
+      );
+      const response = await fetch('/api/predict/diabetes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(numericData)
+      });
+      if (!response.ok) throw new Error('Failed to get prediction');
+      const data = await response.json();
+      setResult(data.prediction);
+    } catch (err) {
+      setError(err.message || 'Error making prediction');
+    } finally { setIsLoading(false); }
+  };
+
+  const formFields = [
+    { name: 'Pregnancies', label: 'Pregnancies', type: 'number' },
+    { name: 'Glucose', label: 'Glucose (mg/dL)', type: 'number' },
+    { name: 'BloodPressure', label: 'Blood Pressure (mmHg)', type: 'number' },
+    { name: 'SkinThickness', label: 'Skin Thickness (mm)', type: 'number' },
+    { name: 'Insulin', label: 'Insulin Level (μU/ml)', type: 'number' },
+    { name: 'BMI', label: 'BMI', type: 'number', step: '0.1' },
+    { name: 'DiabetesPedigreeFunction', label: 'Diabetes Pedigree Function', type: 'number', step: '0.001' },
+    { name: 'Age', label: 'Age', type: 'number' }
+  ];
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {formFields.map(f => (
+          <div key={f.name}>
+            <label htmlFor={f.name} className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+            <input type={f.type} id={f.name} name={f.name} value={formData[f.name]}
+              onChange={handleChange} step={f.step || '1'} min="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required />
+          </div>
+        ))}
+      </div>
+      <button type="submit" disabled={isLoading} className="w-full py-3 px-4 bg-blue-600 text-white rounded-md">
+        {isLoading ? 'Predicting...' : 'Predict Diabetes Risk'}
+      </button>
+      {error && <p className="mt-2 text-red-600">{error}</p>}
+      {result && <p className="mt-2 text-green-700">{result}</p>}
+    </form>
+  );
+};
+
+export default DiabetesForm;

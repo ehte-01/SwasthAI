@@ -1,0 +1,430 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Medical theme - light blues, greens, and clean whites */
+    --background: 200 100% 97%; /* Very light blue-white */
+    --foreground: 210 50% 15%; /* Deep medical blue */
+    --card: 0 0% 100%; /* Pure white for cards */
+    --card-foreground: 210 50% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 15%;
+    --primary: 200 95% 45%; /* Medical blue */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 160 50% 85%; /* Light medical green */
+    --secondary-foreground: 160 80% 25%;
+    --muted: 200 30% 92%; /* Very light blue */
+    --muted-foreground: 210 25% 50%;
+    --accent: 160 60% 70%; /* Soft green accent */
+    --accent-foreground: 160 80% 15%;
+    --destructive: 0 84.2% 60.2%; /* Keep red for errors */
+    --destructive-foreground: 0 0% 98%;
+    --border: 200 30% 85%; /* Light medical border */
+    --input: 200 30% 88%;
+    --ring: 200 95% 45%; /* Medical blue ring */
+    --radius: 0.75rem; /* Slightly more rounded for softer feel */
+  }
+
+  .dark {
+    /* Dark medical theme - deep blues and teals with medical accent */
+    --background: 210 40% 8%; /* Deep medical navy */
+    --foreground: 200 50% 85%; /* Light blue-white text */
+    --card: 210 35% 12%; /* Slightly lighter navy for cards */
+    --card-foreground: 200 50% 85%;
+    --popover: 210 35% 12%;
+    --popover-foreground: 200 50% 85%;
+    --primary: 200 85% 55%; /* Bright medical blue */
+    --primary-foreground: 210 40% 8%;
+    --secondary: 180 30% 20%; /* Dark teal */
+    --secondary-foreground: 180 60% 70%;
+    --muted: 210 25% 18%; /* Muted dark blue */
+    --muted-foreground: 200 20% 60%;
+    --accent: 160 40% 35%; /* Deep medical green */
+    --accent-foreground: 160 60% 80%;
+    --destructive: 0 62.8% 50%; /* Slightly brighter red for dark mode */
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 25% 18%; /* Dark medical border */
+    --input: 210 25% 18%;
+    --ring: 200 85% 55%; /* Medical blue ring */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Additional styles for the Health Insights page */
+.recharts-wrapper {
+  @apply mx-auto;
+}
+
+.recharts-default-tooltip {
+  @apply bg-background border border-border rounded-md shadow-md p-2;
+}
+
+.leaflet-container {
+  @apply rounded-md shadow-md;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-background text-foreground;
+}
+
+.leaflet-popup-tip {
+  @apply bg-background;
+}
+
+/* Responsive utilities */
+@layer utilities {
+  /* Extra small devices */
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .xs\:inline {
+    display: inline;
+  }
+  
+  .xs\:hidden {
+    display: none;
+  }
+  
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+  
+  .xs\:w-auto {
+    width: auto;
+  }
+  
+  /* Responsive text sizes */
+  .text-responsive-xs {
+    font-size: 0.75rem;
+  }
+  
+  .text-responsive-sm {
+    font-size: 0.875rem;
+  }
+  
+  .text-responsive-base {
+    font-size: 1rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.125rem;
+  }
+  
+  .text-responsive-xl {
+    font-size: 1.25rem;
+  }
+  
+  /* Responsive spacing */
+  .p-responsive-sm {
+    padding: 0.5rem;
+  }
+  
+  .p-responsive-base {
+    padding: 0.75rem;
+  }
+  
+  .p-responsive-lg {
+    padding: 1rem;
+  }
+  
+  /* Responsive heights */
+  .h-responsive-sm {
+    height: 2rem;
+  }
+  
+  .h-responsive-base {
+    height: 2.5rem;
+  }
+  
+  .h-responsive-lg {
+    height: 3rem;
+  }
+
+  /* Custom scrollbar for all devices */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1f1f1f;
+    border-radius: 10px;
+  }
+  
+  /* Improved spacing for mobile */
+  .space-y-responsive > * + * {
+    margin-top: clamp(0.5rem, 2vw, 1rem);
+  }
+  
+  .space-x-responsive > * + * {
+    margin-left: clamp(0.5rem, 2vw, 1rem);
+  }
+  
+  /* Improved form elements */
+  .form-input:focus, 
+  .form-select:focus, 
+  .form-textarea:focus {
+    @apply ring-2 ring-primary/50 outline-none;
+  }
+  
+  /* Improved card styles */
+  .card-hover {
+    @apply transition-shadow duration-200;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lg;
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+}
+
+/* Media query for mobile devices */
+@media (max-width: 640px) {
+  .card-content-mobile {
+    padding: 1rem;
+  }
+  
+  .card-header-mobile {
+    padding: 1rem;
+  }
+  
+  .card-footer-mobile {
+    padding: 1rem;
+  }
+  
+  .input-mobile {
+    height: 2.25rem;
+  }
+  
+  .button-mobile {
+    height: 2.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .heading-mobile {
+    font-size: 1.25rem;
+  }
+  
+  .text-mobile {
+    font-size: 0.875rem;
+  }
+  
+  .text-small-mobile {
+    font-size: 0.75rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive text sizing */
+.text-responsive {
+  font-size: clamp(0.75rem, 2vw, 1rem);
+}
+
+.heading-responsive {
+  font-size: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+/* Responsive container padding */
+.container {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Fix for mobile viewport height issues */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Medical themed backgrounds and patterns */
+.medical-bg {
+  background: linear-gradient(135deg, 
+    hsl(var(--background)) 0%, 
+    hsl(200 50% 95%) 50%, 
+    hsl(160 30% 95%) 100%);
+}
+
+.medical-bg-dark {
+  background: linear-gradient(135deg, 
+    hsl(var(--background)) 0%, 
+    hsl(210 35% 10%) 50%, 
+    hsl(180 25% 12%) 100%);
+}
+
+.medical-pattern {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+}
+
+.pulse-animation {
+  animation: pulse-medical 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-medical {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+  }
+}
+
+.heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.05);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.medical-glow {
+  box-shadow: 
+    0 0 20px rgba(59, 130, 246, 0.2),
+    0 0 40px rgba(16, 185, 129, 0.1);
+}
+
+.medical-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.medical-card-dark {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* SwasthAI gradient theme matching mouse effect */
+.swasth-gradient {
+  background: linear-gradient(135deg, 
+    rgba(29, 78, 216, 0.1) 0%, 
+    rgba(59, 130, 246, 0.05) 50%, 
+    rgba(147, 197, 253, 0.1) 100%);
+}
+
+.swasth-gradient-dark {
+  background: linear-gradient(135deg, 
+    rgba(29, 78, 216, 0.2) 0%, 
+    rgba(59, 130, 246, 0.1) 50%, 
+    rgba(147, 197, 253, 0.05) 100%);
+}
+
+.swasth-chatbot {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.98) 0%, 
+    rgba(239, 246, 255, 0.95) 50%, 
+    rgba(219, 234, 254, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(29, 78, 216, 0.2);
+  box-shadow: 
+    0 0 30px rgba(29, 78, 216, 0.15),
+    0 0 60px rgba(59, 130, 246, 0.1),
+    inset 0 0 20px rgba(147, 197, 253, 0.1);
+}
+
+.swasth-chatbot-dark {
+  background: linear-gradient(135deg, 
+    rgba(15, 23, 42, 0.98) 0%, 
+    rgba(30, 41, 59, 0.95) 50%, 
+    rgba(51, 65, 85, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  box-shadow: 
+    0 0 30px rgba(29, 78, 216, 0.3),
+    0 0 60px rgba(59, 130, 246, 0.2),
+    inset 0 0 20px rgba(147, 197, 253, 0.1);
+}
+
+.swasth-message-user {
+  background: linear-gradient(135deg, 
+    rgba(29, 78, 216, 0.9) 0%, 
+    rgba(59, 130, 246, 0.8) 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+}
+
+.swasth-message-bot {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(239, 246, 255, 0.9) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.2);
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.1);
+  color: #1e293b; /* Added explicit dark text color for better visibility */
+}
+
+.swasth-message-bot-dark {
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.95) 0%, 
+    rgba(51, 65, 85, 0.9) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.2);
+  color: #e2e8f0; /* Added explicit light text color for better visibility in dark mode */
+}
+
+.swasth-pulse {
+  animation: swasth-pulse 2s ease-in-out infinite;
+}
+
+@keyframes swasth-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(29, 78, 216, 0);
+    transform: scale(1.05);
+  }
+}
