@@ -13,16 +13,16 @@ Built as a production-grade monorepo with a Next.js frontend, Node.js and Flask 
 ---
 
 ## Architecture
-```
+
+\\\
 SwasthAI/
 ├── frontend/            # Next.js 14 (App Router) — TypeScript
 ├── backend-node/        # Node.js + Express REST API
 ├── backend/             # Python Flask ML API
 ├── ml-backend/          # Jupyter notebooks, model training
 ├── database/            # Schema, migrations, seed data
-├── docs/                # Deployment guides and documentation
 └── docker-compose.yml
-```
+\\\
 
 ---
 
@@ -41,27 +41,28 @@ SwasthAI/
 ---
 
 ## Getting Started
-```bash
+
+\\\ash
 git clone https://github.com/ehte-01/SwasthAI.git
 cd SwasthAI
-```
+\\\
 
 **Frontend:**
-```bash
+\\\ash
 cd frontend && npm install && npm run dev
-```
+\\\
 
 **Flask ML Backend:**
-```bash
+\\\ash
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && python app.py
-```
+\\\
 
 **Run everything with Docker:**
-```bash
+\\\ash
 docker compose up --build
-```
+\\\
 
 ---
 
