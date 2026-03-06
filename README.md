@@ -1,226 +1,79 @@
-# 🌿 GramSwasth: Revolutionizing Rural Healthcare
+# SwasthAI — AI-Powered Rural Healthcare Platform
 
-> Note: The repository is now organized as a monorepo with separate frontend (Next.js) and backend (Python/Flask ML) services.
+> Bridging the healthcare gap for 900 million rural Indians through multilingual AI, real-time diagnostics, and connected health infrastructure.
 
-## Monorepo structure
+---
 
+## Overview
+
+SwasthAI is a full-stack healthcare platform designed for rural India, where access to quality medical care is limited by geography, language, and infrastructure. The platform enables users to get AI-powered medical guidance in their native language, manage family health records securely, discover nearby doctors and hospitals, and integrate with IoT wearables — all from a single application.
+
+Built as a production-grade monorepo with a Next.js frontend, Node.js and Flask backends, deployed across AWS and OCI.
+
+---
+
+## Architecture
 ```
-.
-├── frontend/        # Next.js app (App Router)
-│   ├── app/         # Routes and UI
-│   ├── components/  # Shared UI components
-│   ├── public/      # Static assets
-│   └── Dockerfile   # Production container (standalone)
-├── backend/         # Python ML API (Flask)
-│   ├── app.py       # API entrypoint
-│   ├── models/      # ML models (incl. models/ml/*)
-│   ├── utils/       # Helpers (symptom extraction, doctor finder)
-│   └── Dockerfile   # Backend container
-├── backend-node/    # Legacy Node backend (preserved)
+SwasthAI/
+├── frontend/            # Next.js 14 (App Router) — TypeScript
+├── backend-node/        # Node.js + Express REST API
+├── backend/             # Python Flask ML API
+├── ml-backend/          # Jupyter notebooks, model training
+├── database/            # Schema, migrations, seed data
+├── docs/                # Deployment guides and documentation
 └── docker-compose.yml
 ```
 
-## Quick start (local)
+---
 
-- Frontend (Next.js):
-  - cd frontend
-  - Install deps: pnpm i (or npm i)
-  - Dev: pnpm dev (or npm run dev)
+## Tech Stack
 
-- Backend (Flask):
-  - cd backend
-  - python -m venv .venv && source .venv/bin/activate
-  - pip install -r requirements.txt
-  - python app.py (exposes http://localhost:5000)
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14, TypeScript, Tailwind CSS |
+| Node Backend | Node.js, Express, JWT Auth |
+| ML Backend | Python, Flask, Tesseract OCR |
+| Database | MongoDB Atlas, Supabase (PostgreSQL) |
+| AI/ML | OpenAI GPT-4, Google Gemini |
+| Deployment | AWS, Oracle Cloud (OCI) |
+| Containers | Docker, Docker Compose |
 
-## Docker (optional)
+---
 
-Run both services via Docker:
-
+## Getting Started
+```bash
+git clone https://github.com/ehte-01/SwasthAI.git
+cd SwasthAI
 ```
+
+**Frontend:**
+```bash
+cd frontend && npm install && npm run dev
+```
+
+**Flask ML Backend:**
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && python app.py
+```
+
+**Run everything with Docker:**
+```bash
 docker compose up --build
 ```
 
-This will start:
-- backend: http://localhost:5000/
-- frontend: http://localhost:3000/ (uses NEXT_PUBLIC_API_URL=http://backend:5000 inside the network)
+---
 
-A comprehensive, secure, and user-friendly health management platform built with Next.js, TypeScript, and Supabase. SwasthAI enables users to manage their personal health information, family health records, medical appointments, and important documents in one centralized, secure location.
+## Author
 
-## 🌟 Features
+**Mohammad Ehtesham**
+B.Tech CSAIML · GL Bajaj Institute of Technology · AKTU · Greater Noida
 
-### 🔐 Authentication & Security
-- **Secure Authentication**: Email/password authentication with Supabase Auth
-- **Email Verification**: Required email confirmation for account security
-- **Row-Level Security**: Database-level security ensuring users only access their own data
-- **Protected Routes**: Middleware-based route protection
-- **Session Management**: Automatic session handling with refresh tokens
-
-### 👤 Profile Management
-- **Complete Profile Setup**: Personal information, contact details, medical info
-- **Profile Photo Upload**: Secure avatar storage with Supabase Storage
-- **Medical Information**: Blood group, allergies, emergency contacts
-- **Address Management**: Complete address information storage
-
-### 👨‍👩‍👧‍👦 Family Vault
-- **Family Member Management**: Add and manage family members' health information
-- **Document Storage**: Secure upload and storage of important family documents
-- **Document Categories**: Identity, medical, insurance, legal, financial, education, photos
-- **File Management**: View, download, and delete documents with proper permissions
-- **Emergency Contacts**: Manage emergency contact information for the family
-
-### 🏥 Health Records Management
-- **Medical Records**: Store prescriptions, lab reports, diagnoses, vaccinations, surgeries
-- **File Attachments**: Upload and attach medical documents to health records
-- **Family Health Tracking**: Track health records for all family members
-- **Advanced Filtering**: Filter records by type, family member, and date
-- **Doctor Information**: Store doctor and hospital information with each record
-- Users can input health conditions, symptoms, or queries in any Indian native language (text or audio) and receive responses in the same language
-- Powered by AI-driven insights, providing accurate remedies, treatments, and guidance
-- Built with aiXplain custom agents, ensuring high accuracy and adaptability for rural healthcare needs
-
-### 👨‍⚕️ Doctor Discovery & Appointment Booking (Swasth Connect)
-- Helps users find relevant doctors based on symptoms and health conditions
-- Provides a curated list of doctors with details like hospital affiliations, fees, experience, and specialization
-- Connects rural users with urban specialists
-
-### 🗺️ Locate Nearest Healthcare Facilities (Swasth Map)
-- Uses Google Maps to find nearby hospitals, clinics, and health centers
-- Powerful tool to locate the nearest healthcare facilities based on user location and medical needs
-- Helps users save time during emergencies
-
-### 📰 Health Education & Awareness (Swasth Pulse)
-- Keeps users informed about health-related news, conditions, and updates specific to their area
-- Offers expert-curated blogs, articles, and news to promote health literacy and preventive care
-
-### 📊 Health Insights Dashboard (Swasth View)
-- Interactive visualizations showing urban-rural health disparities in India
-- Charts and graphs for different health metrics including:
-  - Urban vs rural healthcare access comparison
-  - Common health conditions prevalence
-  - Life expectancy trends over time
-  - Child mortality rates and improvements
-- Provides key takeaways and insights to drive informed healthcare decisions
-- Responsive design that works across all device sizes
-
-## 🚀 Future Updates
-
-### 📊 AI-powered Demand Forecasting of Medicines
-- Predicts the demand for medicines in specific areas, ensuring better supply chain management
-- Helps pharmacies stock essential drugs based on demand trends
-
-### 🔮 Disease Outbreak Prediction
-- Uses historical data to predict potential disease outbreaks in particular regions
-- Helps authorities take preventive action before diseases spread
-
-## 💻 Technology Stack
-
-GramSwasth is built using modern, scalable technologies:
-
-- **Frontend**: React, Next.js, TypeScript, Framer, Vercel
-- **Backend**: Flask, JavaScript, Python
-- **AI/ML**: aiXplain custom agents, Google Maps integration
-
-## 🛠️ Setup and Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/yourusername/gram-aarogya.git
-cd gram-aarogya
-```
-
-2. Set up environment variables in a `.env` file:
-```
-TEAM_API_KEY=your_team_api_key
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-DOC_MODEL_ID=your_doc_model_id
-SUMM_MODEL_ID=your_summ_model_id
-NEWS_MODEL_ID=your_news_model_id
-AGENT_MODEL_ID=your_agent_model_id
-```
-
-3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-4. Run the application
-```bash
-python backend.py
-```
-
-## 🌐 API Endpoints
-
-### Health Assistant
-```
-POST /ask
-```
-Body:
-```json
-{
-  "question": "What are the symptoms of dengue?"
-}
-```
-
-### Doctor Discovery
-```
-POST /doctors
-```
-Body:
-```json
-{
-  "condition": "diabetes",
-  "location": "Mumbai"
-}
-```
-
-### Health Centers
-```
-POST /health-centers
-```
-Body:
-```json
-{
-  "latitude": 19.0760,
-  "longitude": 72.8777
-}
-```
-
-### Health News
-```
-POST /news
-```
-Body:
-```json
-{
-  "language": "hindi"
-}
-```
-
-## ⚠️ Challenges & Known Issues
-
-- **Internet Connectivity**: Rural areas may face challenges with consistent internet access
-- **Digital Literacy**: Some users may require training to navigate the app effectively
-- **Data Privacy**: Ensuring user data security and compliance with healthcare regulations
-- **Language Accuracy**: Achieving 100% accuracy in translations for all dialects is an ongoing challenge
-- **Real-Time Updates**: Keeping healthcare facility information up-to-date in real-time
-
-## 🙏 Acknowledgments
-
-- aiXplain for AI model support & custom model creation
-- Google Maps API for location services
+- GitHub: [@ehte-01](https://github.com/ehte-01)
+- LinkedIn: [mohammad-ehtesham-7475a532a](https://www.linkedin.com/in/mohammad-ehtesham-7475a532a)
+- Email: infoehtesham7886@gmail.com
 
 ---
 
-> **Because everyone deserves good health—anytime, anywhere.**
-
-## 👤 Author
-
-For any questions or issues, please open an issue on GitHub: [@Saadmadni84](https://github.com/Saadmadni84)
-
----
-
-<p align="center">
-  Made with ❤️ and lots of ☕
-</p>
-# SwasthAI
+> *Because everyone deserves good health — anytime, anywhere.*
