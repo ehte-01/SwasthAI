@@ -145,7 +145,7 @@ const Navbar = () => {
                 </button>
 
                 {moreOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-44 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl shadow-black/50 overflow-hidden">
+                  <div className="absolute absolute top-full left-0 mt-2 w-44 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl shadow-black/50 z-50">
                     {moreLinks.map(link => (
                       <Link
                         key={link.href}

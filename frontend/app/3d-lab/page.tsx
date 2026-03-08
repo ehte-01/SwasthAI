@@ -3,6 +3,7 @@
 import React, { useMemo, useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { infer, InferenceType } from '@/lib/ml'
+import Navbar from '@/components/Navbar'
 
 // Loading component
 const LoadingSpinner = () => (
@@ -84,18 +85,21 @@ export default function LabPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* ✅ Navbar added — same as find-doctor & g-map pages */}
+      <Navbar />
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-white">🧬 3D Medical Laboratory</h1>
                 <p className="text-blue-100 mt-1">Advanced 3D visualization and AI-powered medical predictions</p>
               </div>
               
               {/* View Mode Selector */}
-              <div className="flex bg-white/10 rounded-lg p-1">
+              <div className="flex bg-white/10 rounded-lg p-1 flex-wrap gap-1">
                 <button
                   onClick={() => setViewMode('heart-disease')}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
