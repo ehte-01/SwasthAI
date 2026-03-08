@@ -123,6 +123,15 @@ const mockDoctors = [
   },
 ];
 
+// ── Specialty tabs ────────────────────────────────────────────────────────────
+const SPECIALTIES = ["All", "Cardiologist", "Dentist", "Pediatrician", "Orthopedic", "Dermatologist", "Neurologist", "Gynecologist", "General Physician"];
+const SPECIALTY_ICONS: Record<string, string> = {
+  All: "🏥", Cardiologist: "🫀", Dentist: "🦷", Pediatrician: "👶",
+  Orthopedic: "🦴", Dermatologist: "🧴", Neurologist: "🧠",
+  Gynecologist: "👩‍⚕️", "General Physician": "🩺",
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function FindDoctor() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +139,7 @@ export default function FindDoctor() {
   const [isLocating, setIsLocating] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [filteredDoctors, setFilteredDoctors] = useState(mockDoctors);
+  const [selectedSpecialty, setSelectedSpecialty] = useState("All");
 
   // Handle location detection
   const handleUseLocation = () => {
@@ -149,6 +159,11 @@ export default function FindDoctor() {
         doctor.hospital.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Specialty tab filter
+    if (selectedSpecialty !== "All") {
+      filtered = filtered.filter((d) => d.specialty === selectedSpecialty);
+    }
+
     // Sort doctors
     if (sortBy === "distance") {
       filtered = filtered.sort((a, b) => a.distance - b.distance);
@@ -157,7 +172,7 @@ export default function FindDoctor() {
     }
 
     setFilteredDoctors(filtered);
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, selectedSpecialty]);
 
   // Render star rating
   const renderStars = (rating: number) => {
@@ -181,6 +196,28 @@ export default function FindDoctor() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+
+      {/* ── Specialty Tabs Bar ── */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-1 overflow-x-auto py-3" style={{ scrollbarWidth: 'none' }}>
+            {SPECIALTIES.map((spec) => (
+              <button
+                key={spec}
+                onClick={() => setSelectedSpecialty(spec)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                  selectedSpecialty === spec
+                    ? "bg-[#003049] text-white shadow-md"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                <span>{SPECIALTY_ICONS[spec]}</span>
+                <span>{spec}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-cyan-50 to-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -422,4 +459,3 @@ export default function FindDoctor() {
     </div>
   );
 }
-

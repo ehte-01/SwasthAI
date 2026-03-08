@@ -14,7 +14,6 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import axios from 'axios';
 import { Heart, Brain, Moon, Footprints, Activity, TrendingUp, Sparkles } from 'lucide-react';
 import Navbar from '@/components/navbar';
 
@@ -52,39 +51,60 @@ interface RecommendationsData {
   timestamp: string;
 }
 
+// ── Mock data generators (replaces localhost:5001) ───────────────────────────
+const generateReading = (id: number): SmartwatchReading => ({
+  id,
+  timestamp: new Date(Date.now() - (10 - id) * 60000).toISOString(),
+  heartRate: Math.floor(65 + Math.random() * 30),
+  stressLevel: parseFloat((2 + Math.random() * 6).toFixed(1)),
+  sleepHours: parseFloat((5 + Math.random() * 4).toFixed(1)),
+  steps: Math.floor(2000 + Math.random() * 8000),
+  mentalHealthScore: parseFloat((5 + Math.random() * 4).toFixed(1)),
+});
+
+const getMockScore = (readings: SmartwatchReading[]): ScoreData => {
+  const avg = readings.reduce((s, r) => s + r.mentalHealthScore, 0) / readings.length;
+  const status = avg >= 8 ? 'Excellent' : avg >= 6 ? 'Good' : avg >= 4 ? 'Fair' : 'Poor';
+  return { averageScore: parseFloat(avg.toFixed(1)), status, readingsCount: readings.length };
+};
+
+const getMockRecommendations = (score: number): RecommendationsData => ({
+  recommendations: score >= 7
+    ? ['Keep up your great mental wellness routine!', 'Try a 10-min mindfulness session today.', 'Your sleep patterns look healthy — maintain them.']
+    : score >= 5
+    ? ['Take short breaks every 90 minutes.', 'Consider a 20-min walk to reduce stress.', 'Aim for 7–8 hours of sleep tonight.', 'Try deep breathing exercises for 5 minutes.']
+    : ['Prioritize rest — sleep is your best medicine.', 'Talk to someone you trust about how you feel.', 'Limit screen time before bed.', 'Drink more water and eat balanced meals.', 'A short outdoor walk can boost your mood significantly.'],
+  currentScore: score,
+  timestamp: new Date().toISOString(),
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function MentalHealthDashboard() {
   const [readings, setReadings] = useState<SmartwatchReading[]>([]);
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = 'http://localhost:5001/api/smartwatch';
-
-  // Fetch all data
-  const fetchData = async () => {
-    try {
-      const [readingsRes, scoreRes, recsRes] = await Promise.all([
-        axios.get(`${API_BASE}/data`),
-        axios.get(`${API_BASE}/score`),
-        axios.get(`${API_BASE}/recommendations`)
-      ]);
-
-      setReadings(readingsRes.data.data);
-      setScoreData(scoreRes.data);
-      setRecommendations(recsRes.data);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching smartwatch data:', err);
-      setError('Failed to connect to smartwatch API. Make sure backend is running on port 5001.');
-    } finally {
-      setLoading(false);
-    }
+  const fetchData = () => {
+    const newReadings = Array.from({ length: 10 }, (_, i) => generateReading(i + 1));
+    const score = getMockScore(newReadings);
+    setReadings(newReadings);
+    setScoreData(score);
+    setRecommendations(getMockRecommendations(score.averageScore));
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000); // Poll every 10 seconds
+    const interval = setInterval(() => {
+      setReadings(prev => {
+        const next = [...prev.slice(1), generateReading(prev[prev.length - 1].id + 1)];
+        const score = getMockScore(next);
+        setScoreData(score);
+        setRecommendations(getMockRecommendations(score.averageScore));
+        return next;
+      });
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -194,29 +214,6 @@ export default function MentalHealthDashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-[#003049] via-[#003049] to-[#002035] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-br from-red-500/10 to-rose-500/10 border border-red-500/30 rounded-2xl p-8 max-w-md text-center"
-          >
-            <p className="text-red-400 text-lg mb-4">{error}</p>
-            <button
-              onClick={fetchData}
-              className="px-6 py-3 bg-gradient-to-r from-[#669bbc] to-[#003049] text-white rounded-xl font-semibold hover:scale-105 transition-transform"
-            >
-              Retry Connection
-            </button>
-          </motion.div>
-        </div>
-      </>
-    );
-  }
-
   const statusColors = scoreData ? getStatusColor(scoreData.averageScore) : null;
 
   return (
@@ -268,6 +265,10 @@ export default function MentalHealthDashboard() {
               </motion.div>
             </div>
             <p className="text-[#669bbc] text-lg">Real-time smartwatch monitoring for your mental wellness</p>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-green-400 text-xs">Live Demo · updates every 10s</span>
+            </div>
           </motion.div>
 
           {/* Stats Cards Grid */}
@@ -421,7 +422,7 @@ export default function MentalHealthDashboard() {
                   <Brain className="w-6 h-6 text-[#669bbc]" />
                   Mental Health Score
                 </h3>
-                
+
                 {scoreData && (
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <motion.div
@@ -481,7 +482,7 @@ export default function MentalHealthDashboard() {
                 <Sparkles className="w-6 h-6 text-[#669bbc]" />
                 Personalized Recommendations
               </h3>
-              
+
               {recommendations && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {recommendations.recommendations.map((rec, index) => (
