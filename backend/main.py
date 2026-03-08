@@ -1,3 +1,4 @@
+from fastapi.responses import Response
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -162,3 +163,4 @@ if __name__ == "__main__":
 @app.head("/health")
 def health_head():
     return Response(status_code=200)
+
