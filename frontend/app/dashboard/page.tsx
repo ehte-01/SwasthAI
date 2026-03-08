@@ -1,430 +1,357 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/contexts/auth-context'
-import Navbar from '@/components/navbar'
-import Link from 'next/link'
-import { 
-  profileOperations, 
-  familyOperations, 
-  appointmentOperations, 
-  healthRecordOperations,
-  insightOperations 
-} from '@/lib/database-utils'
-import { 
-  Profile, 
-  FamilyMember, 
-  Appointment, 
-  HealthRecord, 
-  HealthInsight 
-} from '@/lib/database.types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  CalendarDays, 
-  Users, 
-  FileText, 
-  TrendingUp, 
-  Plus,
-  Activity,
-  Heart,
-  Stethoscope,
-  Calendar,
-  Bell,
-  Settings,
-  UserPlus,
-  BookOpen,
-  BarChart3,
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
-  AlertCircle,
-  CheckCircle,
-  Home,
-  User,
-  Shield,
-  Zap,
-  Search,
-  Filter,
-  Download,
-  Upload,
-  Eye,
-  Edit,
-  ChevronRight,
-  ArrowUpRight
-} from 'lucide-react'
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Users, Plus, Edit2, Trash2, X, Crown, Check,
+  Calendar, UserPlus, Shield,
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
-export default function DashboardPage() {
-  const { user, isLoading } = useAuth()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([])
-  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
-  const [recentRecords, setRecentRecords] = useState<HealthRecord[]>([])
-  const [unreadInsights, setUnreadInsights] = useState<HealthInsight[]>([])
-  const [loading, setLoading] = useState(true)
+const DEFAULT_MEMBERS = [
+  {
+    id: 1,
+    name: "Shahzad khan",
+    age: 45,
+    relationship: "Self",
+    avatar: "https://ui-avatars.com/api/?name=Shahzad+Khan&background=003049&color=fff&size=200",
+    healthPlan: "Active",
+  },
+];
 
+const familyHealthPlan = {
+  name: "Premium Family Plan",
+  price: "₹2,999/month",
+  features: [
+    "Covers up to 5 members",
+    "24x7 Teleconsultation",
+    "Free Annual Health Checkup",
+    "Discounts on Lab Tests",
+    "Priority Appointment Booking",
+  ],
+  renewalDate: "December 1, 2025",
+  isActive: true,
+};
+
+const STORAGE_KEY = "swasthai_family_members";
+
+export default function FamilyWallet() {
+  const [familyMembers, setFamilyMembers] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<number | null>(null);
+  const [formData, setFormData] = useState({ name: "", age: "", relationship: "Spouse" });
+
+  const maxMembers = 5;
+
+  // Load from localStorage on mount
   useEffect(() => {
-    if (user && !isLoading) {
-      loadDashboardData()
-    }
-  }, [user, isLoading])
-
-  const loadDashboardData = async () => {
-    if (!user) return
-
-    setLoading(true)
     try {
-      // Load user profile
-      const { data: profileData } = await profileOperations.getProfile(user.id)
-      setProfile(profileData)
-
-      // Load family members
-      const { data: familyData } = await familyOperations.getFamilyMembers(user.id)
-      setFamilyMembers(familyData || [])
-
-      // Load upcoming appointments
-      const { data: appointmentsData } = await appointmentOperations.getUpcomingAppointments(user.id)
-      setUpcomingAppointments(appointmentsData?.slice(0, 5) || [])
-
-      // Load recent health records
-      const { data: recordsData } = await healthRecordOperations.getHealthRecords(user.id)
-      setRecentRecords(recordsData?.slice(0, 5) || [])
-
-      // Load unread insights
-      const { data: insightsData } = await insightOperations.getInsights(user.id, false)
-      setUnreadInsights(insightsData?.slice(0, 3) || [])
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
-    } finally {
-      setLoading(false)
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        setFamilyMembers(JSON.parse(saved));
+      } else {
+        setFamilyMembers(DEFAULT_MEMBERS);
+      }
+    } catch {
+      setFamilyMembers(DEFAULT_MEMBERS);
     }
-  }
+    setLoaded(true);
+  }, []);
 
-  const createSampleProfile = async () => {
-    if (!user) return
-
-    const sampleProfile = {
-      id: user.id,
-      email: user.email || '',
-      full_name: 'John Doe',
-      phone: '+1234567890',
-      date_of_birth: '1990-01-01',
-      gender: 'male',
-      blood_group: 'O+',
-      city: 'New Delhi',
-      state: 'Delhi',
-      pincode: '110001'
+  // Save to localStorage whenever members change
+  useEffect(() => {
+    if (loaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(familyMembers));
     }
+  }, [familyMembers, loaded]);
 
-    const { data } = await profileOperations.upsertProfile(sampleProfile)
-    if (data) {
-      setProfile(data)
-    }
-  }
+  const progress = (familyMembers.length / maxMembers) * 100;
 
-  const addSampleFamilyMember = async () => {
-    if (!user) return
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const sampleMember = {
-      user_id: user.id,
-      full_name: 'sania',
-      relationship: 'spouse',
-      date_of_birth: '1992-05-15',
-      gender: 'female',
-      blood_group: 'A+',
-      phone: '+1234567891'
+  const handleAddMember = () => {
+    setEditingMember(null);
+    setFormData({ name: "", age: "", relationship: "Spouse" });
+    setShowModal(true);
+  };
+
+  const handleEditMember = (member: any) => {
+    setEditingMember(member.id);
+    setFormData({ name: member.name, age: member.age.toString(), relationship: member.relationship });
+    setShowModal(true);
+  };
+
+  const handleSaveMember = () => {
+    if (!formData.name.trim() || !formData.age) {
+      alert("Please fill in all required fields");
+      return;
     }
 
-    const { data } = await familyOperations.addFamilyMember(sampleMember)
-    if (data) {
-      setFamilyMembers([...familyMembers, data])
+    const bgColors = ["003049", "669bbc", "c1121f", "2d6a4f", "7b2d8b"];
+
+    if (editingMember !== null) {
+      setFamilyMembers(prev =>
+        prev.map(m =>
+          m.id === editingMember
+            ? {
+                ...m,
+                name: formData.name,
+                age: parseInt(formData.age),
+                relationship: formData.relationship,
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${bgColors[1]}&color=fff&size=200`,
+              }
+            : m
+        )
+      );
+    } else {
+      if (familyMembers.length >= maxMembers) {
+        alert(`Maximum ${maxMembers} family members allowed`);
+        return;
+      }
+      const colorIndex = familyMembers.length % bgColors.length;
+      const newMember = {
+        id: Date.now(),
+        name: formData.name,
+        age: parseInt(formData.age),
+        relationship: formData.relationship,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=${bgColors[colorIndex]}&color=fff&size=200`,
+        healthPlan: "Not Subscribed",
+      };
+      setFamilyMembers(prev => [...prev, newMember]);
     }
-  }
 
-  const addSampleAppointment = async () => {
-    if (!user) return
+    setShowModal(false);
+    setFormData({ name: "", age: "", relationship: "Spouse" });
+  };
 
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    const sampleAppointment = {
-      user_id: user.id,
-      doctor_name: 'Dr. Smith',
-      doctor_specialty: 'Cardiologist',
-      hospital_name: 'City Hospital',
-      appointment_date: tomorrow.toISOString().split('T')[0],
-      appointment_time: '10:00',
-      status: 'scheduled',
-      notes: 'Regular checkup'
+  const handleRemoveMember = (id: number) => {
+    if (confirm("Are you sure you want to remove this family member?")) {
+      setFamilyMembers(prev => prev.filter(m => m.id !== id));
     }
+  };
 
-    const { data } = await appointmentOperations.addAppointment(sampleAppointment)
-    if (data) {
-      setUpcomingAppointments([...upcomingAppointments, data])
-    }
-  }
-
-  if (isLoading || loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-600">Loading dashboard...</div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  if (!user) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔒</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
-              <p className="text-gray-600 mb-6">Please log in to view your dashboard.</p>
-              <Link 
-                href="/auth/login"
-                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                <span></span>
-                <span className="ml-2">Login to Continue</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
+  if (!loaded) return null;
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome back, {profile?.full_name || user.email}!</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="bg-white border-2 border-gray-200">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Users className="h-6 w-6 text-gray-900" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl text-gray-900">👨‍👩‍👧‍👦 Family Wallet</CardTitle>
+              <CardDescription className="text-gray-700">
+                Manage your family members and health subscriptions easily
+              </CardDescription>
+            </div>
           </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gray-900">
+                Family Members Added: {familyMembers.length}/{maxMembers}
+              </span>
+              <span className="text-gray-700">{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Profile Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profile</CardTitle>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback>
-                {profile?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{profile ? 'Complete' : 'Incomplete'}</div>
-            <p className="text-xs text-muted-foreground">
-              {profile ? 'Profile information is complete' : 'Complete your profile'}
-            </p>
-            {!profile && (
-              <Button size="sm" className="mt-2" onClick={createSampleProfile}>
-                Create Sample Profile
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Family Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{familyMembers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {familyMembers.length === 0 ? 'No family members added' : 'Family members added'}
-            </p>
-            <Button size="sm" className="mt-2" onClick={addSampleFamilyMember}>
-              <Plus className="h-3 w-3 mr-1" /> Add Sample Member
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingAppointments.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {upcomingAppointments.length === 0 ? 'No upcoming appointments' : 'Scheduled appointments'}
-            </p>
-            <Button size="sm" className="mt-2" onClick={addSampleAppointment}>
-              <Plus className="h-3 w-3 mr-1" /> Add Sample Appointment
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Health Records</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{recentRecords.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {recentRecords.length === 0 ? 'No health records' : 'Recent health records'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Family Members */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Family Members
-            </CardTitle>
-            <CardDescription>Your registered family members</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {familyMembers.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No family members added yet</p>
-            ) : (
-              <div className="space-y-4">
-                {familyMembers.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{member.full_name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.full_name}</p>
-                        <p className="text-sm text-gray-500">{member.relationship}</p>
+      {/* Members Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {familyMembers.map((member, index) => (
+          <motion.div key={member.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.1 }}>
+            <Card className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-gray-200 bg-white">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative">
+                    <img src={member.avatar} alt={member.name} className="w-16 h-16 rounded-full ring-2 ring-gray-300" />
+                    {member.relationship === "Self" && (
+                      <div className="absolute -top-1 -right-1 bg-gray-900 rounded-full p-1">
+                        <Crown className="h-3 w-3 text-yellow-400" />
                       </div>
-                    </div>
-                    <Badge variant="outline">{member.blood_group || 'Unknown'}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Appointments */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              Upcoming Appointments
-            </CardTitle>
-            <CardDescription>Your scheduled medical appointments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {upcomingAppointments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
-            ) : (
-              <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">{appointment.doctor_name}</p>
-                      <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
-                        {appointment.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">{appointment.doctor_specialty}</p>
-                    <p className="text-sm text-gray-500">
-                      {appointment.appointment_date} at {appointment.appointment_time}
-                    </p>
-                    {appointment.hospital_name && (
-                      <p className="text-sm text-gray-500">{appointment.hospital_name}</p>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Health Records */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Recent Health Records
-            </CardTitle>
-            <CardDescription>Your latest health records and documents</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentRecords.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No health records uploaded</p>
-            ) : (
-              <div className="space-y-4">
-                {recentRecords.map((record) => (
-                  <div key={record.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">{record.title}</p>
-                      <Badge variant="outline">{record.record_type}</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">{record.description}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(record.date_recorded).toLocaleDateString()}
-                    </p>
-                    {record.doctor_name && (
-                      <p className="text-sm text-gray-500">Dr. {record.doctor_name}</p>
-                    )}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-gray-900">{member.name}</h3>
+                    <p className="text-sm text-gray-600">{member.relationship} • {member.age} years</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
 
-        {/* Health Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Health Insights
-            </CardTitle>
-            <CardDescription>Personalized health recommendations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {unreadInsights.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No new insights available</p>
-            ) : (
-              <div className="space-y-4">
-                {unreadInsights.map((insight) => (
-                  <div key={insight.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">{insight.title}</p>
-                      <Badge variant={insight.priority === 'high' ? 'destructive' : 'secondary'}>
-                        {insight.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">{insight.content}</p>
-                  </div>
-                ))}
+                <div className="mb-4">
+                  <Badge
+                    variant={member.healthPlan === "Active" ? "default" : "secondary"}
+                    className={member.healthPlan === "Active" ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-700"}
+                  >
+                    {member.healthPlan === "Active" ? <Check className="h-3 w-3 mr-1" /> : <Shield className="h-3 w-3 mr-1" />}
+                    {member.healthPlan}
+                  </Badge>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEditMember(member)}
+                    className="flex-1 bg-gray-800 text-white border-gray-700 hover:bg-gray-700">
+                    <Edit2 className="h-3 w-3 mr-1" /> Edit
+                  </Button>
+                  {member.relationship !== "Self" && (
+                    <Button variant="outline" size="sm" onClick={() => handleRemoveMember(member.id)}
+                      className="flex-1 bg-gray-800 text-white border-gray-700 hover:bg-red-600 hover:border-red-600">
+                      <Trash2 className="h-3 w-3 mr-1" /> Remove
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+
+        {familyMembers.length < maxMembers && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <Card className="h-full border-2 border-dashed border-gray-300 hover:border-gray-500 hover:bg-gray-50 transition-all duration-300 cursor-pointer bg-white" onClick={handleAddMember}>
+              <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-6">
+                <div className="p-4 bg-gray-200 rounded-full mb-4">
+                  <Plus className="h-8 w-8 text-gray-900" />
+                </div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Add Family Member</h3>
+                <p className="text-sm text-gray-700 text-center">Click to add a new family member</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Health Plan */}
+      <Card className="border-2 border-gray-200 bg-white">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg shadow-sm">
+                <Shield className="h-6 w-6 text-gray-900" />
               </div>
+              <div>
+                <CardTitle className="text-xl text-gray-900">{familyHealthPlan.name}</CardTitle>
+                <CardDescription className="text-gray-700">Comprehensive coverage for your entire family</CardDescription>
+              </div>
+            </div>
+            {familyHealthPlan.isActive && (
+              <Badge className="bg-green-500 hover:bg-green-600">
+                <Check className="h-3 w-3 mr-1" /> Active
+              </Badge>
             )}
-          </CardContent>
-        </Card>
-      </div>
-        </div>
-      </div>
-    </>
-  )
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-900 mb-3">Plan Features:</h4>
+              {familyHealthPlan.features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="p-1 bg-green-100 rounded-full">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <span className="text-sm text-gray-800">{feature}</span>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-700">Plan Price</span>
+                  <span className="text-2xl font-bold text-gray-900">{familyHealthPlan.price}</span>
+                </div>
+                {familyHealthPlan.isActive && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Calendar className="h-4 w-4" />
+                    <span>Renews on {familyHealthPlan.renewalDate}</span>
+                  </div>
+                )}
+              </div>
+              <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" size="lg">
+                {familyHealthPlan.isActive ? "Manage Subscription" : "Subscribe Now"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowModal(false)}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
+              onClick={e => e.stopPropagation()}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <UserPlus className="h-5 w-5 text-gray-900" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {editingMember !== null ? "Edit Family Member" : "Add Family Member"}
+                    </h3>
+                  </div>
+                  <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Full Name <span className="text-red-500">*</span></label>
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange}
+                      placeholder="Enter full name"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 outline-none text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Age <span className="text-red-500">*</span></label>
+                    <input type="number" name="age" value={formData.age} onChange={handleInputChange}
+                      placeholder="Enter age" min="0" max="120"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 outline-none text-gray-900" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Relationship</label>
+                    <select name="relationship" value={formData.relationship} onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 outline-none bg-white text-gray-900">
+                      <option value="Father">Father</option>
+                      <option value="Mother">Mother</option>
+                      <option value="Spouse">Spouse</option>
+                      <option value="Son">Son</option>
+                      <option value="Daughter">Daughter</option>
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                      <option value="Grandfather">Grandfather</option>
+                      <option value="Grandmother">Grandmother</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1 border-2 border-gray-300 text-gray-900 hover:bg-gray-100">Cancel</Button>
+                  <Button onClick={handleSaveMember} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white">
+                    {editingMember !== null ? "Update" : "Save"}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
