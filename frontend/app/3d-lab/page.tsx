@@ -3,7 +3,7 @@
 import React, { useMemo, useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { infer, InferenceType } from '@/lib/ml'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/navbar'
 
 // Loading component
 const LoadingSpinner = () => (
