@@ -84,7 +84,7 @@ const translations = [
 ];
 
 export default function NewsHelp() {
-  const [language, setLanguage] = useState("Hindi")
+  const [language, setLanguage] = useState("English")
   const [apiResponse, setApiResponse] = useState<NewsResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -93,6 +93,7 @@ export default function NewsHelp() {
   const router = useRouter()
 
   const languages = [
+    "English",
     "Hindi",
     "Marathi",
     "Bengali",
@@ -161,7 +162,7 @@ export default function NewsHelp() {
 
     try {
       // Fetch news from the API
-      const res = await fetch("http://127.0.0.1:5000/news", {
+      const res = await fetch("/api/news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ language }),
@@ -319,4 +320,5 @@ export default function NewsHelp() {
     </div>
   )
 }
+
 

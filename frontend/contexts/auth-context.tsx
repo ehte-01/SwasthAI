@@ -55,7 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           safePush('/auth/login');
           break;
         case 'SIGNED_IN':
-          safePush('/dashboard');
+            const authPages = ['/auth/login', '/auth/signup', '/'];
+            if (authPages.includes(window.location.pathname)) { safePush('/dashboard'); }
           break;
         // other events like TOKEN_REFRESHED, USER_UPDATED → no redirect
         default:
@@ -159,3 +160,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+
+

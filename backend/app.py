@@ -102,21 +102,50 @@ def predict_heart():
 # -------------------------
 # Parkinsons prediction
 # -------------------------
+# -------------------------
+# Parkinsons prediction
+# -------------------------
 @app.route("/predict/parkinsons", methods=["POST"])
 def predict_parkinsons():
     try:
         data = request.get_json()
 
-        # Replace these with the actual features your Parkinsons model expects
-        expected_features = [
-            "feature1", "feature2", "feature3"  # Add all features
-        ]
-
-        missing = [f for f in expected_features if f not in data]
+        required_simple = ['fo', 'fhi', 'flo', 'jitter_percent', 'shimmer', 'nhr', 'hnr']
+        missing = [f for f in required_simple if f not in data]
         if missing:
             return jsonify({"error": f"Missing features: {missing}"}), 400
 
-        features = np.array([[data[f] for f in expected_features]])
+        fo = float(data['fo'])
+        fhi = float(data['fhi'])
+        flo = float(data['flo'])
+        jitter_percent = float(data['jitter_percent'])
+        shimmer = float(data['shimmer'])
+        nhr = float(data['nhr'])
+        hnr = float(data['hnr'])
+
+        # Fill 22 features using derived/average values
+        features = np.array([[
+            fo, fhi, flo,
+            jitter_percent,
+            jitter_percent * 0.00006,
+            jitter_percent * 0.45,
+            jitter_percent * 0.48,
+            jitter_percent * 1.35,
+            shimmer,
+            shimmer * 0.11,
+            shimmer * 0.45,
+            shimmer * 0.57,
+            shimmer * 0.62,
+            shimmer * 1.35,
+            nhr, hnr,
+            0.498,   # RPDE average
+            0.718,   # DFA average
+            -5.684,  # spread1 average
+            0.227,   # spread2 average
+            2.382,   # D2 average
+            0.206    # PPE average
+        ]])
+
         prediction = parkinsons_model.predict(features)
         result = "Parkinsons" if prediction[0] == 1 else "No Parkinsons"
         return jsonify({"prediction": result})
@@ -131,3 +160,4 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') != 'production'
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
+

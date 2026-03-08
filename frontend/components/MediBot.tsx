@@ -77,11 +77,10 @@ export default function MediBot() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle sending messages
+  // ✅ FIXED: Handle sending messages — now calls /api/ask instead of getBotResponse()
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
-    // Create user message
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
@@ -89,45 +88,38 @@ export default function MediBot() {
       timestamp: new Date(),
     };
 
-    // Add user message to chat
     setMessages((prev) => [...prev, userMessage]);
+    const question = inputText;
     setInputText('');
     setIsTyping(true);
-    
-    // Prevent any scroll
-    const currentScroll = window.scrollY;
 
-    // Simulate bot response (replace this with actual API call)
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, useGemini: true }),
+      });
+
+      const data = await res.json();
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: getBotResponse(inputText),
+        text: data.response || data.error || 'Sorry, I could not process your request.',
         sender: 'bot',
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry, there was an error. Please try again.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-      
-      // Restore scroll position
-      window.scrollTo(0, currentScroll);
-    }, 2000);
-  };
-
-  // Simulate bot response (replace with actual AI API integration)
-  const getBotResponse = (userInput: string): string => {
-    const input = userInput.toLowerCase();
-    
-    if (input.includes('hello') || input.includes('hi')) {
-      return "Hello! I'm here to assist you with your health queries. What would you like to know?";
-    } else if (input.includes('headache') || input.includes('pain')) {
-      return "For headaches, try resting in a quiet, dark room and staying hydrated. If pain persists or worsens, please consult a healthcare professional.";
-    } else if (input.includes('fever') || input.includes('temperature')) {
-      return "For fever, rest, stay hydrated, and monitor your temperature. If it exceeds 103°F (39.4°C) or persists for more than 3 days, seek medical attention.";
-    } else if (input.includes('thank')) {
-      return "You're welcome! Remember, I'm here whenever you need health guidance. Stay healthy! 💙";
-    } else {
-      return "I understand your concern. While I can provide general health information, please consult a qualified healthcare professional for personalized medical advice and diagnosis.";
     }
   };
 

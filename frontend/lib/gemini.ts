@@ -52,17 +52,25 @@ Respond in a helpful, caring tone while maintaining medical accuracy.`;
 
 export class GeminiService {
   private model: any;
+  private visionModel: any;
   private isConfigured: boolean;
 
   constructor() {
     this.isConfigured = !!genAI && !!apiKey;
-    
+
     if (this.isConfigured && genAI) {
       this.model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-1.5-flash',
         safetySettings,
         generationConfig,
         systemInstruction: HEALTH_SYSTEM_PROMPT,
+      });
+
+      // Vision model — no system instruction (for document analysis)
+      this.visionModel = genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        safetySettings,
+        generationConfig,
       });
     }
   }
@@ -83,7 +91,7 @@ export class GeminiService {
     }
 
     try {
-      const prompt = context 
+      const prompt = context
         ? `Context: ${context}\n\nQuestion: ${question}`
         : question;
 
@@ -195,6 +203,48 @@ Keep the advice practical, evidence-based, and encouraging.`;
     } catch (error) {
       console.error('Error generating health tips:', error);
       throw new Error('Failed to generate health tips');
+    }
+  }
+
+  /**
+   * Analyze a scanned medical document from base64 image(s)
+   * Used by Medical Report Analyzer for image-based PDFs
+   */
+  async analyzeMedicalImage(base64Images: string[]): Promise<string> {
+    if (!this.isConfigured || !this.visionModel) {
+      throw new Error('Gemini API is not configured. Please check your API key.');
+    }
+
+    const textPrompt = `You are a professional medical document analyzer for SwasthAI health platform.
+
+Analyze this scanned medical document image carefully and provide a structured report.
+
+If this is NOT a medical/health document, reply ONLY with:
+NOT_MEDICAL: [One sentence: what this document is and why it's not medical]
+
+If it IS a medical document, provide structured analysis with EXACTLY these sections (skip sections with no content):
+
+## 📄 Document Type
+## 👤 Patient Information
+## 🔬 Key Findings / Clinical Notes
+## 📊 Vital Signs & Observations
+## 🏥 Diagnosis / Conditions
+## 💊 Medications & Treatment Plan
+## 📋 Recommendations & Follow-up
+## 📝 Summary`;
+
+    try {
+      const parts: any[] = [{ text: textPrompt }];
+      for (const b64 of base64Images) {
+        parts.push({ inlineData: { mimeType: 'image/jpeg', data: b64 } });
+      }
+
+      const result = await this.visionModel.generateContent({ contents: [{ role: 'user', parts }] });
+      const response = await result.response;
+      return response.text() || '';
+    } catch (error) {
+      console.error('Error analyzing medical image:', error);
+      throw new Error('Failed to analyze medical image');
     }
   }
 }
