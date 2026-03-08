@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin, Star, Navigation, Filter, Phone, Calendar, ArrowLeft, Map, List } from "lucide-react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useRouter } from "next/navigation";
 
 // ── Types ────────────────────────────────────────────────────────────────────
