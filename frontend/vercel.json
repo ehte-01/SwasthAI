@@ -25,5 +25,11 @@
     "app/**/*.{js,ts,tsx}": {
       "maxDuration": 10
     }
-  }
+  },
+  "crons": [
+    {
+      "schedule": "*/10 * * * *",
+      "path": "/api/keep-alive"
+    }
+  ]
 }
