@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import DoctorAvatar from '@/components/DoctorAvatar'
 import HeygenRealtime from '@/components/HeygenRealtime'
 import { Mic, MicOff, Video, VideoOff, PhoneOff, RefreshCw } from 'lucide-react'
-import { useSpeechRecognition } from 'react-speech-kit'
 
 // Lightweight live session that feels like a video call with Dr. Swasth
 export default function DoctorLive() {
@@ -12,14 +11,63 @@ export default function DoctorLive() {
   const [cameraOn, setCameraOn] = useState(true)
   const [micOn, setMicOn] = useState(false)
   const [messages, setMessages] = useState<Array<{sender: 'user'|'bot'; text: string; at: number}>>([
-    { sender: 'bot', text: "Hello! I’m Dr. Swasth. Tell me what’s on your mind today.", at: Date.now() }
+    { sender: 'bot', text: "Hello! I'm Dr. Swasth. Tell me what's on your mind today.", at: Date.now() }
   ])
   const [useHumanAvatar, setUseHumanAvatar] = useState(false)
+  const [transcript, setTranscript] = useState('')
 
   // Webcam preview
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
+  const recognitionRef = useRef<any>(null)
 
+  // ── Web Speech API setup ───────────────────────────────────────────────────
+  const sttSupported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+
+  const [listening, setListening] = useState(false)
+
+  const listen = useCallback(() => {
+    if (!sttSupported) return
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+
+    recognition.onresult = (event: any) => {
+      const t = Array.from(event.results)
+        .map((r: any) => r[0].transcript)
+        .join('')
+      setTranscript(t)
+    }
+
+    recognition.onend = () => {
+      setListening(false)
+      setMicOn(false)
+      setTranscript(prev => {
+        const text = prev.trim()
+        if (text) sendUser(text)
+        return ''
+      })
+    }
+
+    recognition.onerror = () => {
+      setListening(false)
+      setMicOn(false)
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setListening(true)
+  }, [sttSupported])
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop()
+    setListening(false)
+  }, [])
+
+  // ── Camera ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const startCam = async () => {
       if (!cameraOn) return stopCam()
@@ -43,18 +91,6 @@ export default function DoctorLive() {
     return stopCam
   }, [cameraOn])
 
-  // STT push-to-talk
-  const [transcript, setTranscript] = useState('')
-  const { listen, listening, stop, supported: sttSupported } = useSpeechRecognition({
-    onResult: (t: string) => setTranscript(t),
-    onEnd: () => {
-      const text = transcript.trim()
-      if (text) sendUser(text)
-      setTranscript('')
-      setMicOn(false)
-    },
-  })
-
   const lastBot = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].sender === 'bot') return messages[i].text
     return ''
@@ -62,7 +98,6 @@ export default function DoctorLive() {
 
   function sendUser(text: string) {
     setMessages(prev => [...prev, { sender: 'user', text, at: Date.now() }])
-    // Simulate doctor thinking then replying (replace with real API call)
     setTimeout(() => {
       const reply = getDoctorReply(text)
       setMessages(prev => [...prev, { sender: 'bot', text: reply, at: Date.now() }])
@@ -85,7 +120,7 @@ export default function DoctorLive() {
     if (listening) {
       stop(); setMicOn(false)
     } else {
-      setTranscript(''); listen({ interimResults: true }); setMicOn(true)
+      setTranscript(''); listen(); setMicOn(true)
     }
   }
 
@@ -107,7 +142,7 @@ export default function DoctorLive() {
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-blue-900/80">Live with Dr. Swasth</div>
                 <button
-                  onClick={() => setUseHumanAvatar(v=>!v)}
+                  onClick={() => setUseHumanAvatar(v => !v)}
                   className="px-3 py-2 rounded-lg border border-white/40 text-blue-900 flex items-center gap-2 bg-white/60"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -128,14 +163,14 @@ export default function DoctorLive() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-blue-900">You</h3>
                 <div className="flex gap-2">
-                  <button onClick={() => setCameraOn(v => !v)} className={`px-3 py-2 rounded-lg border ${cameraOn?'border-blue-200 text-blue-700':'border-gray-300 text-gray-500'}`}>
-                    {cameraOn ? <Video className="w-5 h-5"/> : <VideoOff className="w-5 h-5"/>}
+                  <button onClick={() => setCameraOn(v => !v)} className={`px-3 py-2 rounded-lg border ${cameraOn ? 'border-blue-200 text-blue-700' : 'border-gray-300 text-gray-500'}`}>
+                    {cameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                   </button>
-                  <button onClick={toggleMic} disabled={!sttSupported} className={`px-3 py-2 rounded-lg border ${micOn?'border-red-300 text-red-600':'border-blue-200 text-blue-700'}`}>
-                    {micOn ? <MicOff className="w-5 h-5"/> : <Mic className="w-5 h-5"/>}
+                  <button onClick={toggleMic} disabled={!sttSupported} className={`px-3 py-2 rounded-lg border ${micOn ? 'border-red-300 text-red-600' : 'border-blue-200 text-blue-700'}`}>
+                    {micOn ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
                   <button onClick={() => setConnected(false)} className="px-3 py-2 rounded-lg border border-red-300 text-red-600">
-                    <PhoneOff className="w-5 h-5"/>
+                    <PhoneOff className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -145,11 +180,12 @@ export default function DoctorLive() {
               <div className="mt-3 text-xs text-gray-500">
                 {sttSupported ? (listening ? 'Listening… speak now' : 'Press mic to talk') : 'Speech recognition not supported in this browser.'}
               </div>
+              {transcript && <div className="mt-2 text-xs text-blue-600 italic">{transcript}</div>}
             </div>
 
             <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-4 h-[300px] overflow-y-auto space-y-3">
               {messages.map((m, i) => (
-                <div key={i} className={`max-w-[85%] px-3 py-2 rounded-xl ${m.sender==='user'?'ml-auto bg-blue-600 text-white':'bg-blue-50 text-blue-900'}`}>{m.text}</div>
+                <div key={i} className={`max-w-[85%] px-3 py-2 rounded-xl ${m.sender === 'user' ? 'ml-auto bg-blue-600 text-white' : 'bg-blue-50 text-blue-900'}`}>{m.text}</div>
               ))}
             </div>
           </div>
