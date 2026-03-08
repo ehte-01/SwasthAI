@@ -1,16 +1,13 @@
 server:
   port: 8080
-
 spring:
   application:
     name: swasthai-backend
-
   datasource:
     url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
     username: postgres.aqtswjwxsxvnbbhtxnxm
     password: "@Supabase2004"
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,21 +16,15 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-
   security:
     jwt:
       secret: swasthai-secret-key-2024-very-long-and-secure
       expiration: 86400000
-
-# ML Microservice URL
 ml:
   service:
-    url: http://localhost:5000
-
-# CORS
+    url: https://swasthai-qgfk.onrender.com
 cors:
-  allowed-origins: http://localhost:3000
-
+  allowed-origins: https://swasth-ai-jc2f.vercel.app,http://localhost:3000
 logging:
   level:
     com.swasthai: DEBUG
