@@ -58,6 +58,40 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* ── Global Input / Textarea / Select — Professional Styling ── */
+  input,
+  textarea,
+  select {
+    font-size: 0.875rem !important;     /* 14px — compact, professional */
+    font-weight: 400 !important;         /* normal weight — not bold */
+    line-height: 1.5 !important;
+    color: #1e293b !important;           /* dark slate — readable */
+    font-family: inherit !important;     /* match app font */
+  }
+
+  /* Placeholder — subtle gray, small size */
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8 !important;           /* slate-400 — soft, not intrusive */
+    font-size: 0.8125rem !important;     /* 13px — slightly smaller than input text */
+    font-weight: 400 !important;
+    opacity: 1 !important;
+  }
+
+  /* Number input spinner arrows — hide for cleaner look */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 0.4;
+    height: 20px;
+  }
+
+  /* Select — remove default ugly arrow styling on some browsers */
+  select option {
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    color: #1e293b !important;
+  }
 }
 
 /* Additional styles for the Health Insights page */
@@ -87,66 +121,66 @@
   .xs\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
+
   .xs\:inline {
     display: inline;
   }
-  
+
   .xs\:hidden {
     display: none;
   }
-  
+
   .xs\:flex-row {
     flex-direction: row;
   }
-  
+
   .xs\:w-auto {
     width: auto;
   }
-  
+
   /* Responsive text sizes */
   .text-responsive-xs {
     font-size: 0.75rem;
   }
-  
+
   .text-responsive-sm {
     font-size: 0.875rem;
   }
-  
+
   .text-responsive-base {
     font-size: 1rem;
   }
-  
+
   .text-responsive-lg {
     font-size: 1.125rem;
   }
-  
+
   .text-responsive-xl {
     font-size: 1.25rem;
   }
-  
+
   /* Responsive spacing */
   .p-responsive-sm {
     padding: 0.5rem;
   }
-  
+
   .p-responsive-base {
     padding: 0.75rem;
   }
-  
+
   .p-responsive-lg {
     padding: 1rem;
   }
-  
+
   /* Responsive heights */
   .h-responsive-sm {
     height: 2rem;
   }
-  
+
   .h-responsive-base {
     height: 2.5rem;
   }
-  
+
   .h-responsive-lg {
     height: 3rem;
   }
@@ -160,37 +194,37 @@
     background: #1f1f1f;
     border-radius: 10px;
   }
-  
+
   /* Improved spacing for mobile */
   .space-y-responsive > * + * {
     margin-top: clamp(0.5rem, 2vw, 1rem);
   }
-  
+
   .space-x-responsive > * + * {
     margin-left: clamp(0.5rem, 2vw, 1rem);
   }
-  
+
   /* Improved form elements */
-  .form-input:focus, 
-  .form-select:focus, 
+  .form-input:focus,
+  .form-select:focus,
   .form-textarea:focus {
     @apply ring-2 ring-primary/50 outline-none;
   }
-  
+
   /* Improved card styles */
   .card-hover {
     @apply transition-shadow duration-200;
   }
-  
+
   .card-hover:hover {
     @apply shadow-lg;
   }
-  
+
   /* Animation utilities */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
-  
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
@@ -201,32 +235,32 @@
   .card-content-mobile {
     padding: 1rem;
   }
-  
+
   .card-header-mobile {
     padding: 1rem;
   }
-  
+
   .card-footer-mobile {
     padding: 1rem;
   }
-  
+
   .input-mobile {
     height: 2.25rem;
   }
-  
+
   .button-mobile {
     height: 2.25rem;
     font-size: 0.875rem;
   }
-  
+
   .heading-mobile {
     font-size: 1.25rem;
   }
-  
+
   .text-mobile {
     font-size: 0.875rem;
   }
-  
+
   .text-small-mobile {
     font-size: 0.75rem;
   }
@@ -275,21 +309,21 @@
 
 /* Medical themed backgrounds and patterns */
 .medical-bg {
-  background: linear-gradient(135deg, 
-    hsl(var(--background)) 0%, 
-    hsl(200 50% 95%) 50%, 
+  background: linear-gradient(135deg,
+    hsl(var(--background)) 0%,
+    hsl(200 50% 95%) 50%,
     hsl(160 30% 95%) 100%);
 }
 
 .medical-bg-dark {
-  background: linear-gradient(135deg, 
-    hsl(var(--background)) 0%, 
-    hsl(210 35% 10%) 50%, 
+  background: linear-gradient(135deg,
+    hsl(var(--background)) 0%,
+    hsl(210 35% 10%) 50%,
     hsl(180 25% 12%) 100%);
 }
 
 .medical-pattern {
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
 }
@@ -330,7 +364,7 @@
 }
 
 .medical-glow {
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(59, 130, 246, 0.2),
     0 0 40px rgba(16, 185, 129, 0.1);
 }
@@ -349,69 +383,69 @@
 
 /* SwasthAI gradient theme matching mouse effect */
 .swasth-gradient {
-  background: linear-gradient(135deg, 
-    rgba(29, 78, 216, 0.1) 0%, 
-    rgba(59, 130, 246, 0.05) 50%, 
+  background: linear-gradient(135deg,
+    rgba(29, 78, 216, 0.1) 0%,
+    rgba(59, 130, 246, 0.05) 50%,
     rgba(147, 197, 253, 0.1) 100%);
 }
 
 .swasth-gradient-dark {
-  background: linear-gradient(135deg, 
-    rgba(29, 78, 216, 0.2) 0%, 
-    rgba(59, 130, 246, 0.1) 50%, 
+  background: linear-gradient(135deg,
+    rgba(29, 78, 216, 0.2) 0%,
+    rgba(59, 130, 246, 0.1) 50%,
     rgba(147, 197, 253, 0.05) 100%);
 }
 
 .swasth-chatbot {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(239, 246, 255, 0.95) 50%, 
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(239, 246, 255, 0.95) 50%,
     rgba(219, 234, 254, 0.98) 100%);
   backdrop-filter: blur(20px);
   border: 2px solid rgba(29, 78, 216, 0.2);
-  box-shadow: 
+  box-shadow:
     0 0 30px rgba(29, 78, 216, 0.15),
     0 0 60px rgba(59, 130, 246, 0.1),
     inset 0 0 20px rgba(147, 197, 253, 0.1);
 }
 
 .swasth-chatbot-dark {
-  background: linear-gradient(135deg, 
-    rgba(15, 23, 42, 0.98) 0%, 
-    rgba(30, 41, 59, 0.95) 50%, 
+  background: linear-gradient(135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
     rgba(51, 65, 85, 0.98) 100%);
   backdrop-filter: blur(20px);
   border: 2px solid rgba(59, 130, 246, 0.4);
-  box-shadow: 
+  box-shadow:
     0 0 30px rgba(29, 78, 216, 0.3),
     0 0 60px rgba(59, 130, 246, 0.2),
     inset 0 0 20px rgba(147, 197, 253, 0.1);
 }
 
 .swasth-message-user {
-  background: linear-gradient(135deg, 
-    rgba(29, 78, 216, 0.9) 0%, 
+  background: linear-gradient(135deg,
+    rgba(29, 78, 216, 0.9) 0%,
     rgba(59, 130, 246, 0.8) 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
 }
 
 .swasth-message-bot {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%, 
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.95) 0%,
     rgba(239, 246, 255, 0.9) 100%);
   border: 1px solid rgba(29, 78, 216, 0.2);
   box-shadow: 0 2px 10px rgba(29, 78, 216, 0.1);
-  color: #1e293b; /* Added explicit dark text color for better visibility */
+  color: #1e293b;
 }
 
 .swasth-message-bot-dark {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.95) 0%, 
+  background: linear-gradient(135deg,
+    rgba(30, 41, 59, 0.95) 0%,
     rgba(51, 65, 85, 0.9) 100%);
   border: 1px solid rgba(59, 130, 246, 0.3);
   box-shadow: 0 2px 10px rgba(29, 78, 216, 0.2);
-  color: #e2e8f0; /* Added explicit light text color for better visibility in dark mode */
+  color: #e2e8f0;
 }
 
 .swasth-pulse {
