@@ -7,20 +7,9 @@ import {
   Calendar, UserPlus, Shield,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-
-const DEFAULT_MEMBERS = [
-  {
-    id: 1,
-    name: "Shahzad khan",
-    age: 45,
-    relationship: "Self",
-    avatar: "https://ui-avatars.com/api/?name=Shahzad+Khan&background=003049&color=fff&size=200",
-    healthPlan: "Active",
-  },
-];
+import { supabase } from "@/lib/supabase";
 
 const familyHealthPlan = {
   name: "Premium Family Plan",
@@ -47,19 +36,70 @@ export default function FamilyWallet() {
 
   const maxMembers = 5;
 
-  // Load from localStorage on mount
+  // ✅ Load logged-in user as first "Self" member from Supabase
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        setFamilyMembers(JSON.parse(saved));
-      } else {
-        setFamilyMembers(DEFAULT_MEMBERS);
+    const init = async () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          setFamilyMembers(JSON.parse(saved));
+          setLoaded(true);
+          return;
+        }
+
+        // No saved data — build default from logged-in user
+        const { data: { user } } = await supabase.auth.getUser();
+
+        let selfName = "You";
+        let selfAge = 0;
+
+        if (user) {
+          // Try to get name from user_profiles table
+          const { data: profileData } = await supabase
+            .from("user_profiles")
+            .select("full_name, date_of_birth")
+            .eq("user_id", user.id)
+            .single();
+
+          if (profileData?.full_name) {
+            selfName = profileData.full_name;
+          } else {
+            // Fallback: use email prefix, capitalize first letter
+            const emailPrefix = user.email?.split("@")[0] || "You";
+            selfName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+          }
+
+          if (profileData?.date_of_birth) {
+            const dob = new Date(profileData.date_of_birth);
+            selfAge = new Date().getFullYear() - dob.getFullYear();
+          }
+        }
+
+        const defaultSelf = [{
+          id: 1,
+          name: selfName,
+          age: selfAge || 0,
+          relationship: "Self",
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(selfName)}&background=003049&color=fff&size=200`,
+          healthPlan: "Active",
+        }];
+
+        setFamilyMembers(defaultSelf);
+      } catch {
+        setFamilyMembers([{
+          id: 1,
+          name: "You",
+          age: 0,
+          relationship: "Self",
+          avatar: `https://ui-avatars.com/api/?name=You&background=003049&color=fff&size=200`,
+          healthPlan: "Active",
+        }]);
+      } finally {
+        setLoaded(true);
       }
-    } catch {
-      setFamilyMembers(DEFAULT_MEMBERS);
-    }
-    setLoaded(true);
+    };
+
+    init();
   }, []);
 
   // Save to localStorage whenever members change
@@ -185,7 +225,9 @@ export default function FamilyWallet() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-900">{member.name}</h3>
-                    <p className="text-sm text-gray-600">{member.relationship} • {member.age} years</p>
+                    <p className="text-sm text-gray-600">
+                      {member.relationship}{member.age > 0 ? ` • ${member.age} years` : ""}
+                    </p>
                   </div>
                 </div>
 
@@ -200,15 +242,19 @@ export default function FamilyWallet() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEditMember(member)}
-                    className="flex-1 bg-gray-800 text-white border-gray-700 hover:bg-gray-700">
-                    <Edit2 className="h-3 w-3 mr-1" /> Edit
-                  </Button>
+                  <button
+                    onClick={() => handleEditMember(member)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" /> Edit
+                  </button>
                   {member.relationship !== "Self" && (
-                    <Button variant="outline" size="sm" onClick={() => handleRemoveMember(member.id)}
-                      className="flex-1 bg-gray-800 text-white border-gray-700 hover:bg-red-600 hover:border-red-600">
-                      <Trash2 className="h-3 w-3 mr-1" /> Remove
-                    </Button>
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Remove
+                    </button>
                   )}
                 </div>
               </CardContent>
@@ -277,15 +323,15 @@ export default function FamilyWallet() {
                   </div>
                 )}
               </div>
-              <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" size="lg">
+              <button className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors">
                 {familyHealthPlan.isActive ? "Manage Subscription" : "Subscribe Now"}
-              </Button>
+              </button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Add/Edit Modal */}
+      {/* ✅ Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -341,11 +387,20 @@ export default function FamilyWallet() {
                   </div>
                 </div>
 
+                {/* ✅ Cancel button — proper visible styling */}
                 <div className="flex gap-3 mt-6">
-                  <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1 border-2 border-gray-300 text-gray-900 hover:bg-gray-100">Cancel</Button>
-                  <Button onClick={handleSaveMember} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 px-4 py-3 bg-white border-2 border-gray-400 text-gray-800 font-semibold rounded-xl hover:bg-gray-100 hover:border-gray-500 transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveMember}
+                    className="flex-1 px-4 py-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all duration-200"
+                  >
                     {editingMember !== null ? "Update" : "Save"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </motion.div>
